@@ -26,6 +26,7 @@ const Game = deepFreeze({
     height: 45,
     background: "#29A5BB",
   },
+  dropDelay: 100,
 });
 
 const State = {
@@ -77,10 +78,10 @@ function createFruitObject({ x, y, fruit, options }) {
     y,
     fruit.radius,
     {
-      density: 0.1,
-      frictionAir: 0.05,
-      resitution: 0.5,
-      frinction: 0.1,
+      density: 1,
+      frictionAir: 0.00005,
+      resitution: 0.8,
+      frinction: 0.01,
       render: {
         sprite: {
           texture: fruit.url,
@@ -155,8 +156,37 @@ function setup() {
   return [canvas, engine, render];
 }
 
+function onDropFruit({ engine, x, y }) {
+  const fruitObject = State.pointer;
+  if (fruitObject === null) {
+    return;
+  }
+  State.pointer = null;
+  const targetX = Math.max(fruitObject.fruit.radius, Math.min(Game.width - fruitObject.fruit.radius, x));
+  const targetY = fruitObject.fruit.radius * 3;
+  Matter.Body.setPosition(fruitObject.body, { x: targetX, y: targetY });
+  setTimeout(() => {
+    Matter.Body.setStatic(fruitObject.body, false);
+    updatePointer({ engine });
+  }, Game.dropDelay);
+}
+
+function onCanvasClick({ canvas, engine }) {
+  canvas.addEventListener("mousedown", function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top;
+    onDropFruit({ engine, x, y });
+  })
+}
+
+function registerListeners({ canvas, engine }) {
+  onCanvasClick({ canvas, engine });
+}
+
 function start() {
-  const [, engine, render] = setup();
+  const [canvas, engine, render] = setup();
+  registerListeners({ canvas, engine });
   Render.run(render);
   const runner = Runner.create();
   Runner.run(runner, engine);
