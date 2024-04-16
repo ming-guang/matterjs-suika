@@ -189,7 +189,7 @@ function onDropFruit({ engine, x, y }) {
   }, Game.dropDelay);
 }
 
-function onCanvasClick({ canvas, engine }) {
+function registerOnCanvasClick({ canvas, engine }) {
   canvas.addEventListener("mousedown", function(e) {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left
@@ -198,8 +198,46 @@ function onCanvasClick({ canvas, engine }) {
   })
 }
 
+function findFruitObjectByBody({ body }) {
+  return State.fruits.find((fruitObject) => fruitObject.body === body) || null;
+}
+
+function mergeFruitObject({ engine, fruitObjectA, fruitObjectB }) {
+  const targetX = (fruitObjectA.body.position.x + fruitObjectB.body.position.x) / 2;
+  const targetY = (fruitObjectA.body.position.y + fruitObjectB.body.position.y) / 2;
+  const fruit = Assets[fruitObjectA.fruit.index + 1];
+  const fruitObject = createFruitObject({ x: targetX, y: targetY, fruit, options: {} });
+  removeFruit({ engine, fruitObject: fruitObjectA });
+  removeFruit({ engine, fruitObject: fruitObjectB });
+  insertFruit({ engine, fruitObject });
+}
+
+function onFruitCollide({ engine, fruitObjectA, fruitObjectB }) {
+  if (fruitObjectA.fruit !== fruitObjectB.fruit) {
+    console.debug({ fruits: [fruitObjectA.fruit, fruitObjectB.fruit] });
+    return;
+  }
+  mergeFruitObject({ engine, fruitObjectA, fruitObjectB });
+}
+
+function registerOnObjectCollide({ engine }) {
+  Matter.Events.on(engine, "collisionStart", ({ pairs }) => {
+    pairs.forEach((pair) => {
+      console.debug({ fruits: State.fruits, pair });
+      const fruitObjectA = findFruitObjectByBody({ body: pair.bodyA });
+      const fruitObjectB = findFruitObjectByBody({ body: pair.bodyB });
+      if (fruitObjectA === null || fruitObjectB === null) {
+        console.debug({ objects: [fruitObjectA, fruitObjectB] });
+        return;
+      }
+      onFruitCollide({ engine, fruitObjectA, fruitObjectB });
+    });
+  });
+}
+
 function registerListeners({ canvas, engine }) {
-  onCanvasClick({ canvas, engine });
+  registerOnCanvasClick({ canvas, engine });
+  registerOnObjectCollide({ engine });
 }
 
 function start() {
