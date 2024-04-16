@@ -19,8 +19,8 @@ const Assets = deepFreeze([
 ]);
 
 const Game = deepFreeze({
-  height: 600,
-  width: 300,
+  height: 750,
+  width: 500,
   background: "#FFD59D",
   ground: {
     height: 45,
