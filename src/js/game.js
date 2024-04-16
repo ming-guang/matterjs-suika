@@ -13,9 +13,33 @@ const Assets = deepFreeze([
   {
     index: 1,
     url: "assets/strawberry.png",
-    radius: 18,
+    radius: 26,
   },
-  {} // TODO - remove this
+  {
+    index: 2,
+    url: "assets/grapes.png",
+    radius: 39,
+  },
+  {
+    index: 3,
+    url: "assets/peach.png",
+    radius: 52,
+  },
+  {
+    index: 4,
+    url: "assets/pineapple.png",
+    radius: 60,
+  },
+  {
+    index: 5,
+    url: "assets/melon.png",
+    radius: 65,
+  },
+  {
+    index: 6,
+    url: "assets/watermelon.png",
+    radius: 70,
+  },
 ]);
 
 const Game = deepFreeze({
@@ -125,7 +149,7 @@ function removeFruit({ engine, fruitObject }) {
 }
 
 function pickRandomDropableFruit() {
-  const index = Math.floor(Math.random() * (Assets.length - 1));
+  const index = Math.floor(Math.random() * (Assets.length / 2));
   return Assets[index];
 }
 
