@@ -72,6 +72,23 @@ function drawGround({ engine }) {
   Composite.add(engine.world, [ground]);
 }
 
+function drawWall({ engine }) {
+  const wallOptions = [
+    Game.height / 2,
+    10,
+    Game.height,
+    {
+      isStatic: true,
+      render: {
+        fillStyle: Game.ground.background,
+      },
+    },
+  ];
+  const leftWall = Bodies.rectangle(-5, ...wallOptions);
+  const rightWall = Bodies.rectangle(Game.width + 5, ...wallOptions);
+  Composite.add(engine.world, [leftWall, rightWall]);
+}
+
 function createFruitObject({ x, y, fruit, options }) {
   const body = Bodies.circle(
     x,
@@ -127,6 +144,7 @@ function updatePointer({ engine }) {
 
 function redrawWorld({ engine }) {
   drawGround({ engine });
+  drawWall({ engine });
 }
 
 function recalibrate({ engine }) {
