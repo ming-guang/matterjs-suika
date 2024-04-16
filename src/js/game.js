@@ -52,9 +52,11 @@ const Game = deepFreeze({
   },
   dropDelay: 100,
   pointerUpdateDelay: 500,
+  winDelay: 100,
 });
 
 const State = {
+  id: 0,
   pointer: null,
   fruits: [],
 };
@@ -172,9 +174,16 @@ function redrawWorld({ engine }) {
   drawWall({ engine });
 }
 
+function resetState() {
+  State.id++;
+  State.pointer = null;
+  State.fruits = [];
+}
+
 function recalibrate({ engine }) {
   resetWorld({ engine });
   redrawWorld({ engine });
+  resetState();
   updatePointer({ engine })
 }
 
@@ -211,8 +220,11 @@ function onDropFruit({ engine, x, y }) {
   setTimeout(() => {
     Matter.Body.setStatic(fruitObject.body, false);
   }, Game.dropDelay);
+  const currentStateId = State.id;
   setTimeout(() => {
-    updatePointer({ engine });
+    if (currentStateId === State.id) {
+      updatePointer({ engine });
+    }
   }, Game.pointerUpdateDelay);
 }
 
@@ -229,6 +241,13 @@ function findFruitObjectByBody({ body }) {
   return State.fruits.find((fruitObject) => fruitObject.body === body) || null;
 }
 
+function onGameWin({ engine }) {
+  setTimeout(() => {
+    alert("You win!");
+    recalibrate({ engine });
+  }, Game.winDelay);
+}
+
 function mergeFruitObject({ engine, fruitObjectA, fruitObjectB }) {
   const targetX = (fruitObjectA.body.position.x + fruitObjectB.body.position.x) / 2;
   const targetY = (fruitObjectA.body.position.y + fruitObjectB.body.position.y) / 2;
@@ -237,6 +256,9 @@ function mergeFruitObject({ engine, fruitObjectA, fruitObjectB }) {
   removeFruit({ engine, fruitObject: fruitObjectA });
   removeFruit({ engine, fruitObject: fruitObjectB });
   insertFruit({ engine, fruitObject });
+  if ((fruit.index + 1) == Assets.length) {
+    onGameWin({ engine });
+  }
 }
 
 function onFruitCollide({ engine, fruitObjectA, fruitObjectB }) {
