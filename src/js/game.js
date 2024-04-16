@@ -27,6 +27,7 @@ const Game = deepFreeze({
     background: "#29A5BB",
   },
   dropDelay: 100,
+  pointerUpdateDelay: 500,
 });
 
 const State = {
@@ -185,8 +186,10 @@ function onDropFruit({ engine, x, y }) {
   Matter.Body.setPosition(fruitObject.body, { x: targetX, y: targetY });
   setTimeout(() => {
     Matter.Body.setStatic(fruitObject.body, false);
-    updatePointer({ engine });
   }, Game.dropDelay);
+  setTimeout(() => {
+    updatePointer({ engine });
+  }, Game.pointerUpdateDelay);
 }
 
 function registerOnCanvasClick({ canvas, engine }) {
