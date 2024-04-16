@@ -4,6 +4,20 @@ const Engine = Matter.Engine,
   Bodies = Matter.Bodies,
   Composite = Matter.Composite;
 
+const Assets = deepFreeze([
+  {
+    index: 0,
+    url: "assets/cherries.png",
+    radius: 13,
+  },
+  {
+    index: 1,
+    url: "assets/strawberry.png",
+    radius: 18,
+  },
+  {} // TODO - remove this
+]);
+
 const Game = deepFreeze({
   height: 600,
   width: 300,
@@ -11,8 +25,13 @@ const Game = deepFreeze({
   ground: {
     height: 45,
     background: "#29A5BB",
-  }
+  },
 });
+
+const State = {
+  pointer: null,
+  fruits: [],
+};
 
 function deepFreeze(object) {
   // Retrieve the property names defined on object
@@ -52,6 +71,59 @@ function drawGround({ engine }) {
   Composite.add(engine.world, [ground]);
 }
 
+function createFruitObject({ x, y, fruit, options }) {
+  const body = Bodies.circle(
+    x,
+    y,
+    fruit.radius,
+    {
+      density: 0.1,
+      frictionAir: 0.05,
+      resitution: 0.5,
+      frinction: 0.1,
+      render: {
+        sprite: {
+          texture: fruit.url,
+        },
+      },
+      ...options,
+    },
+  );
+  return {
+    fruit,
+    body,
+  }
+}
+
+function insertFruit({ engine, fruitObject }) {
+  State.fruits[State.fruits.length] = fruitObject;
+  Composite.add(engine.world, [fruitObject.body]);
+}
+
+function removeFruit({ engine, fruitObject }) {
+  Composite.remove(engine.world, fruitObject.body);
+  State.fruits = State.fruits.filter((obj) => obj.body !== fruitObject.body);
+}
+
+function pickRandomDropableFruit() {
+  const index = Math.floor(Math.random() * (Assets.length - 1));
+  return Assets[index];
+}
+
+function updatePointer({ engine }) {
+  const fruit = pickRandomDropableFruit();
+  const fruitObject = createFruitObject({
+    x: Game.width / 2,
+    y: fruit.radius,
+    fruit,
+    options: {
+      isStatic: true,
+    },
+  });
+  State.pointer = fruitObject;
+  insertFruit({ engine, fruitObject });
+}
+
 function redrawWorld({ engine }) {
   drawGround({ engine });
 }
@@ -59,6 +131,7 @@ function redrawWorld({ engine }) {
 function recalibrate({ engine }) {
   resetWorld({ engine });
   redrawWorld({ engine });
+  updatePointer({ engine })
 }
 
 function setup() {
